@@ -13,7 +13,6 @@
         android:theme="@style/AppTheme">
         <activity android:name=".activity_map"></activity>
         <activity android:name=".profile" />
-        <activity android:name=".Signup" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

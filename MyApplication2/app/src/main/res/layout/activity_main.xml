@@ -22,32 +22,6 @@
         android:gravity="center"
         >
 
-        <EditText
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/ed_id"
-            android:hint="ID" />
-
-        <EditText
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/ed_pw"
-            android:hint="pw" />
-
-        <Button
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/bt_login"
-            android:text="LOGIN"
-            />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Create your Account"
-            android:id="@+id/bt_signup"
-            />
-
         <com.facebook.login.widget.LoginButton
             android:id="@+id/login_button"
             android:layout_width="wrap_content"
@@ -56,12 +30,6 @@
             android:layout_marginTop="30dp"
             android:text="FACEBOOK"
             android:layout_marginBottom="30dp" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="MAP"
-            android:id="@+id/map_bt"/>
 
     </LinearLayout>
 
