@@ -19,6 +19,8 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.Profile;
+import com.facebook.ProfileTracker;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
@@ -34,6 +36,7 @@ public class MainActivity extends AppCompatActivity  {
 
     FirebaseAuth firebaseAuth;
     CallbackManager callbackManager;
+    private ProfileTracker mProfileTracker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +55,22 @@ public class MainActivity extends AppCompatActivity  {
                     @Override
                     public void onSuccess(LoginResult loginResult) {
                         Log.e("e","로그인 성공");
-                        startActivity(new Intent(MainActivity.this, profile.class));
+                        if(Profile.getCurrentProfile() == null) {
+                            mProfileTracker = new ProfileTracker() {
+                                @Override
+                                protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                                    Log.e("facebook - profile", currentProfile.getId());
+                                    mProfileTracker.stopTracking();
+                                }
+                            };
+                            // no need to call startTracking() on mProfileTracker
+                            // because it is called by its constructor, internally.
+                        }
+                        else {
+                            Profile profile = Profile.getCurrentProfile();
+                            Log.e("facebook - profile", profile.getId());
+                        }
+                        startActivity(new Intent(MainActivity.this, choose.class));
                         // App code
                     }
 
@@ -75,8 +93,8 @@ public class MainActivity extends AppCompatActivity  {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
 }

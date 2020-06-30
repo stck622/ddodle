@@ -53,7 +53,7 @@ public class profile extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
         Log.d("link : ", "test");
         Log.d("link", Profile.getCurrentProfile().getId());
-        new MommooAsyncTask().execute();
+        //new MommooAsyncTask().execute();
     }
 
     public class MommooAsyncTask extends AsyncTask<String,Void,String>{
