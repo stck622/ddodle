@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.facebook.Profile;
+import com.facebook.ProfileTracker;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -26,11 +28,28 @@ public class activity_map extends AppCompatActivity
     private DatabaseReference databaseReference = firebaseDatabase.getReference();
 
     fbData fbdata;
+    private ProfileTracker mProfileTracker;
+    String fb_id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+        if(Profile.getCurrentProfile() == null) {
+            mProfileTracker = new ProfileTracker() {
+
+                @Override
+                protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                    fb_id = currentProfile.getId();
+                    mProfileTracker.stopTracking();
+                }
+            };
+        }
+        else {
+            Profile profile = Profile.getCurrentProfile();
+            fb_id = profile.getId();
+        }
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -42,13 +61,14 @@ public class activity_map extends AppCompatActivity
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 fbdata = dataSnapshot.getValue(fbData.class);
                 mMap.clear();
-                for(int i = 0; i < fbdata.data.get("697168847786868").size();i++){
-                    if(fbdata.data.get("697168847786868").get(i) != null) {
+                for(int i = 0; i < fbdata.data.get(fb_id).size();i++){
+                    if(fbdata.data.get(fb_id).get(i) != null) {
                         MarkerOptions markerOptions = new MarkerOptions();
-                        LatLng SEOUL = new LatLng(Double.parseDouble(fbdata.data.get("697168847786868").get(i).get("posX")), Double.parseDouble(fbdata.data.get("697168847786868").get(i).get("posY")));
+                        LatLng SEOUL = new LatLng(Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posX")), Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posY")));
                         markerOptions.position(SEOUL);
-                        markerOptions.title(String.valueOf(i));
-                        markerOptions.snippet(fbdata.data.get("697168847786868").get(i).get("text"));
+                        //markerOptions.title(String.valueOf(i));
+                        Log.e("esaa",String.valueOf(i));
+                        markerOptions.snippet(fbdata.data.get(fb_id).get(i).get("text"));
                         mMap.addMarker(markerOptions);
                     }
                 }
@@ -66,11 +86,13 @@ public class activity_map extends AppCompatActivity
     public void onMapReady(final GoogleMap googleMap) {
 
         mMap = googleMap;
+        GpsTracker gpsTracker = new GpsTracker(activity_map.this);
+        double latitude = gpsTracker.getLatitude(); // 위도
+        double longitude = gpsTracker.getLongitude(); //경도
 
-        LatLng SEOUL = new LatLng(37.56, 126.97);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude,longitude), 15));
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(SEOUL));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
+
     }
 
 }
