@@ -82,6 +82,10 @@ public class write extends AppCompatActivity {
                         mRef.child("posY").setValue(String.valueOf(longitude));
                         mRef.child("text").setValue(((EditText) findViewById(R.id.ed_write)).getText().toString());
                         mRef.push();
+
+                        finish();
+                        startActivity(new Intent(write.this, activity_map.class));
+
                     }
                 }
             }

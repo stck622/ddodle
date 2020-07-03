@@ -83,7 +83,7 @@ public class activity_map extends AppCompatActivity
     }
 
     @Override
-    public void onMapReady(final GoogleMap googleMap) {
+    public void onMapReady(final GoogleMap googleMap) { 
 
         mMap = googleMap;
         GpsTracker gpsTracker = new GpsTracker(activity_map.this);
