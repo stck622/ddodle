@@ -60,6 +60,8 @@ public class write extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 fbdata = dataSnapshot.getValue(fbData.class);
+                if(fbdata.data==null)
+                    return;
             }
 
             @Override

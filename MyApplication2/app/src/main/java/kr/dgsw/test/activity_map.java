@@ -60,14 +60,18 @@ public class activity_map extends AppCompatActivity
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 fbdata = dataSnapshot.getValue(fbData.class);
+                if(fbdata.data==null)
+                    return;
                 mMap.clear();
+                if(fbdata.data.get(fb_id)==null)
+                    return;
                 for(int i = 0; i < fbdata.data.get(fb_id).size();i++){
-                    if(fbdata.data.get(fb_id).get(i) != null) {
+                    if((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null)) {
+                        Log.e("esaa",fbdata.data.get(fb_id).get(i).get("posY"));
                         MarkerOptions markerOptions = new MarkerOptions();
                         LatLng SEOUL = new LatLng(Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posX")), Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posY")));
                         markerOptions.position(SEOUL);
-                        //markerOptions.title(String.valueOf(i));
-                        Log.e("esaa",String.valueOf(i));
+                        markerOptions.title(String.valueOf(i));
                         markerOptions.snippet(fbdata.data.get(fb_id).get(i).get("text"));
                         mMap.addMarker(markerOptions);
                     }
@@ -83,16 +87,19 @@ public class activity_map extends AppCompatActivity
     }
 
     @Override
-    public void onMapReady(final GoogleMap googleMap) { 
-
+    public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;
         GpsTracker gpsTracker = new GpsTracker(activity_map.this);
         double latitude = gpsTracker.getLatitude(); // 위도
         double longitude = gpsTracker.getLongitude(); //경도
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude,longitude), 15));
+    }
 
-
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
     }
 
 }

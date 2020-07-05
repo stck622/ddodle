@@ -31,6 +31,7 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.LoginStatusCallback;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
 import com.facebook.appevents.AppEventsLogger;
@@ -129,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.e("facebook - profile", profile.getId());
                         }
                         startActivity(new Intent(MainActivity.this, choose.class));
+                        finish();
                         // App code
                     }
 
