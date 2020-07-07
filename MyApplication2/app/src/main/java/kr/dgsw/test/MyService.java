@@ -13,8 +13,17 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+
+import com.facebook.Profile;
+import com.facebook.ProfileTracker;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MyService extends Service {
 
@@ -42,8 +51,6 @@ public class MyService extends Service {
 
         // foreground 서비스로 실행한다.
         startForeground(1, clsBuilder.build());
-
-        // QQQ: 쓰레드 등을 실행하여서 서비스에 적합한 로직을 구현한다.
 
         new Thread(new Runnable() {
             @Override

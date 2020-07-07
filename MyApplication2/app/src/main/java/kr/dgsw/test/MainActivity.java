@@ -41,6 +41,11 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -50,9 +55,40 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
+    private FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+    private DatabaseReference databaseReference = firebaseDatabase.getReference();
+
+    private static ProfileTracker mProfileTracker;
+
+    private static fbData fbdata;
+    private static String fb_id;
+
+    static fbData getfbData(){
+        return fbdata;
+    }
+
+    static String getfb_id(){
+
+        if(Profile.getCurrentProfile() == null) {
+            mProfileTracker = new ProfileTracker() {
+                @Override
+                protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                    fb_id = currentProfile.getId();
+                    mProfileTracker.stopTracking();
+                }
+            };
+        }
+        else {
+            Profile profile = Profile.getCurrentProfile();
+            fb_id = profile.getId();
+        }
+
+        return fb_id;
+    }
+
+
     FirebaseAuth firebaseAuth;
     CallbackManager callbackManager;
-    private ProfileTracker mProfileTracker;
 
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int PERMISSIONS_REQUEST_CODE = 100;
@@ -94,6 +130,37 @@ public class MainActivity extends AppCompatActivity {
         getHashKey();
 
         firebaseAuth = FirebaseAuth.getInstance();
+
+        databaseReference.addValueEventListener(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                fbdata = dataSnapshot.getValue(fbData.class);
+
+                Log.e("essae","te");
+
+                String fb_id = getfb_id();
+
+                if (dataSnapshot.child("data").child(fb_id).getValue() == null) {
+                    DatabaseReference mRef = firebaseDatabase.getReference().child("data").child(fb_id).child("0");
+                    mRef.child("posX").setValue(String.valueOf(0));
+                    mRef.child("posY").setValue(String.valueOf(0));
+                    mRef.child("text").setValue("환영합니다. 낙서를 시작해보세요!");
+                    mRef.push();
+                }
+
+                if (fbdata.data == null)
+                    return;
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("essae","tett");
+            }
+
+        });
 
         FacebookSdk.sdkInitialize(getApplicationContext());
         AppEventsLogger.activateApp(this);

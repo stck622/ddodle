@@ -24,11 +24,7 @@ public class activity_map extends AppCompatActivity
 
     private GoogleMap mMap;
 
-    private FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-    private DatabaseReference databaseReference = firebaseDatabase.getReference();
-
     fbData fbdata;
-    private ProfileTracker mProfileTracker;
     String fb_id;
 
     @Override
@@ -36,53 +32,26 @@ public class activity_map extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        if(Profile.getCurrentProfile() == null) {
-            mProfileTracker = new ProfileTracker() {
-
-                @Override
-                protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
-                    fb_id = currentProfile.getId();
-                    mProfileTracker.stopTracking();
-                }
-            };
-        }
-        else {
-            Profile profile = Profile.getCurrentProfile();
-            fb_id = profile.getId();
-        }
-
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        databaseReference.addValueEventListener(new ValueEventListener() {
+        fb_id = MainActivity.getfb_id();
+        fbdata = MainActivity.getfbData();
 
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                fbdata = dataSnapshot.getValue(fbData.class);
-                if(fbdata.data==null)
-                    return;
-                mMap.clear();
-                if(fbdata.data.get(fb_id)==null)
-                    return;
-                for(int i = 0; i < fbdata.data.get(fb_id).size();i++){
-                    if((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null)) {
-                        Log.e("esaa",fbdata.data.get(fb_id).get(i).get("posY"));
-                        MarkerOptions markerOptions = new MarkerOptions();
-                        LatLng SEOUL = new LatLng(Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posX")), Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posY")));
-                        markerOptions.position(SEOUL);
-                        markerOptions.title(String.valueOf(i));
-                        markerOptions.snippet(fbdata.data.get(fb_id).get(i).get("text"));
-                        mMap.addMarker(markerOptions);
-                    }
-                }
+        if(fbdata.data.get(fb_id)==null)
+            return;
+        for(int i = 0; i < fbdata.data.get(fb_id).size();i++){
+            if((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null)) {
+                Log.e("esaa",fbdata.data.get(fb_id).get(i).get("posY"));
+                MarkerOptions markerOptions = new MarkerOptions();
+                LatLng SEOUL = new LatLng(Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posX")), Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posY")));
+                markerOptions.position(SEOUL);
+                markerOptions.title(String.valueOf(i));
+                markerOptions.snippet(fbdata.data.get(fb_id).get(i).get("text"));
+                mMap.addMarker(markerOptions);
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+        }
 
     }
 
