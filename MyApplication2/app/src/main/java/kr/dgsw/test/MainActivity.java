@@ -4,6 +4,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.Manifest;
 import android.app.Activity;
@@ -24,9 +27,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -42,6 +47,7 @@ import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -60,12 +66,44 @@ public class MainActivity extends AppCompatActivity {
 
 
     CallbackManager callbackManager; //페이스북 로그인 콜백
+    BottomNavigationView bottomNavigationView;
+
+    fragment1 fragmenta;
+    fragment2 fragmentb;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        fragmenta = new fragment1();
+        fragmentb = new fragment2();
+
+        bottomNavigationView = findViewById(R.id.navigationView);
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.searchItem:
+                        getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout,fragmenta).commit();
+                        Log.e("test", "t1t");
+                        return true;
+                    case R.id.cameraItem:
+                        Log.e("test", "tt3");
+                        getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout,fragmentb).commit();
+                        return true;
+                    case R.id.callItem:
+                        Log.e("test", "tt2");
+                        return true;
+                }
+                return false;
+            }
+
+        });
+
+        getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout,fragmenta).commit();
 
 
         /** 퍼미션 체크 **/
@@ -80,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
         boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
 
-        if(isLoggedIn) {
+        if (isLoggedIn) {
             startActivity(new Intent(MainActivity.this, choose.class));
             finish();
         }
