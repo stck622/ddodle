@@ -6,6 +6,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,6 +20,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
@@ -55,65 +58,8 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    private FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-    private DatabaseReference databaseReference = firebaseDatabase.getReference();
 
-    private static ProfileTracker mProfileTracker;
-
-    private static fbData fbdata;
-    private static String fb_id;
-
-    static fbData getfbData(){
-        return fbdata;
-    }
-
-    static String getfb_id(){
-
-        if(Profile.getCurrentProfile() == null) {
-            mProfileTracker = new ProfileTracker() {
-                @Override
-                protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
-                    fb_id = currentProfile.getId();
-                    mProfileTracker.stopTracking();
-                }
-            };
-        }
-        else {
-            Profile profile = Profile.getCurrentProfile();
-            fb_id = profile.getId();
-        }
-
-        return fb_id;
-    }
-
-
-    FirebaseAuth firebaseAuth;
-    CallbackManager callbackManager;
-
-    private static final int GPS_ENABLE_REQUEST_CODE = 2001;
-    private static final int PERMISSIONS_REQUEST_CODE = 100;
-    String[] REQUIRED_PERMISSIONS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
-
-    private void getHashKey() {
-        PackageInfo packageInfo = null;
-        try {
-            packageInfo = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_SIGNATURES);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        if (packageInfo == null)
-            Log.e("KeyHash", "KeyHash:null");
-
-        for (Signature signature : packageInfo.signatures) {
-            try {
-                MessageDigest md = MessageDigest.getInstance("SHA");
-                md.update(signature.toByteArray());
-                Log.d("KeyHash", Base64.encodeToString(md.digest(), Base64.DEFAULT));
-            } catch (NoSuchAlgorithmException e) {
-                Log.e("KeyHash", "Unable to get MessageDigest. signature=" + signature, e);
-            }
-        }
-    }
+    CallbackManager callbackManager; //페이스북 로그인 콜백
 
 
     @Override
@@ -121,58 +67,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        /** 퍼미션 체크 **/
         if (checkLocationServicesStatus()) {
             checkRunTimePermission();
         } else {
             showDialogForLocationServiceSetting();
         }
 
-        getHashKey();
 
-        firebaseAuth = FirebaseAuth.getInstance();
-
-        databaseReference.addValueEventListener(new ValueEventListener() {
-
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                fbdata = dataSnapshot.getValue(fbData.class);
-
-                Log.e("essae","te");
-
-                String fb_id = getfb_id();
-
-                if (dataSnapshot.child("data").child(fb_id).getValue() == null) {
-                    DatabaseReference mRef = firebaseDatabase.getReference().child("data").child(fb_id).child("0");
-                    mRef.child("posX").setValue(String.valueOf(0));
-                    mRef.child("posY").setValue(String.valueOf(0));
-                    mRef.child("text").setValue("환영합니다. 낙서를 시작해보세요!");
-                    mRef.push();
-                }
-
-                if (fbdata.data == null)
-                    return;
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e("essae","tett");
-            }
-
-        });
-
-        FacebookSdk.sdkInitialize(getApplicationContext());
-        AppEventsLogger.activateApp(this);
-
+        /** 자동 로그인 **/
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
         boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
 
         if(isLoggedIn) {
-            finish();
             startActivity(new Intent(MainActivity.this, choose.class));
+            finish();
         }
 
+
+        /** 페이스북 로그인 **/
         callbackManager = CallbackManager.Factory.create();
 
         LoginManager.getInstance().registerCallback(callbackManager,
@@ -180,70 +94,49 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onSuccess(LoginResult loginResult) {
-
                         Log.e("e", "로그인 성공");
-                        if (Profile.getCurrentProfile() == null) {
-                            mProfileTracker = new ProfileTracker() {
-                                @Override
-                                protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
-                                    Log.e("facebook - profile", currentProfile.getId());
-                                    mProfileTracker.stopTracking();
-                                }
-                            };
-                            // no need to call startTracking() on mProfileTracker
-                            // because it is called by its constructor, internally.
-                        } else {
-                            Profile profile = Profile.getCurrentProfile();
-                            Log.e("facebook - profile", profile.getId());
-                        }
                         startActivity(new Intent(MainActivity.this, choose.class));
                         finish();
-                        // App code
                     }
 
                     @Override
                     public void onCancel() {
-                        // App code
                         Log.e("e", "로그인 캔슬");
                     }
 
                     @Override
                     public void onError(FacebookException exception) {
-                        // App code
                         Log.e("e", "로그인 오류");
                     }
 
                 });
 
+
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        //페이스북 콜백
         callbackManager.onActivityResult(requestCode, resultCode, data);
 
+        /** GPS 활성화 여부 조사 **/
         switch (requestCode) {
-
             case GPS_ENABLE_REQUEST_CODE:
-
-                //사용자가 GPS 활성 시켰는지 검사
                 if (checkLocationServicesStatus()) {
                     if (checkLocationServicesStatus()) {
-
-                        Log.d("@@@", "onActivityResult : GPS 활성화 되있음");
                         checkRunTimePermission();
                         return;
                     }
                 }
-
                 break;
         }
 
     }
 
-    /*
-     * ActivityCompat.requestPermissions를 사용한 퍼미션 요청의 결과를 리턴받는 메소드입니다.
-     */
+
     @Override
     public void onRequestPermissionsResult(int permsRequestCode,
                                            @NonNull String[] permissions,
@@ -290,6 +183,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    private static final int GPS_ENABLE_REQUEST_CODE = 2001;
+    private static final int PERMISSIONS_REQUEST_CODE = 100;
+    String[] REQUIRED_PERMISSIONS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+
+
     void checkRunTimePermission() {
 
         //런타임 퍼미션 처리
@@ -334,7 +233,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //여기부터는 GPS 활성화를 위한 메소드들
     private void showDialogForLocationServiceSetting() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -359,11 +257,13 @@ public class MainActivity extends AppCompatActivity {
         builder.create().show();
     }
 
+
     public boolean checkLocationServicesStatus() {
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
                 || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
     }
+
 
 }
