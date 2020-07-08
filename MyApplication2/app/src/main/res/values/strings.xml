@@ -1,5 +1,8 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">DDODLE</string>
     <string name="facebook_app_id">1111671709216970</string>
     <string name="fb_login_protocol_scheme">fb1111671709216970</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

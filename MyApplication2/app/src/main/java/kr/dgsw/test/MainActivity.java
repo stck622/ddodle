@@ -40,7 +40,6 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.LoginStatusCallback;
-import com.facebook.Profile;
 import com.facebook.ProfileTracker;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
@@ -64,38 +63,56 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-
-    CallbackManager callbackManager; //페이스북 로그인 콜백
     BottomNavigationView bottomNavigationView;
 
-    fragment1 fragmenta;
-    fragment2 fragmentb;
-
+    static Map fragment_map;
+    Write write;
+    Profile fragment_profile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        fragmenta = new fragment1();
-        fragmentb = new fragment2();
-
         bottomNavigationView = findViewById(R.id.navigationView);
+
+        fragment_map = new Map();
+        write = new Write(bottomNavigationView);
+        fragment_profile = new Profile();
+
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
 
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.bottom_map:
-                        getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout,fragmenta).commit();
-                        Log.e("test", "t1t");
+                        if(MyService.getLoginFlag()) {
+                            getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_map).commit();
+                        } else {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            builder.setTitle("알림!").setMessage("로그인 후 사용해주세요!");
+                            builder.setPositiveButton("OK", null);
+                            AlertDialog alertDialog = builder.create();
+                            alertDialog.show();
+                            bottomNavigationView.setSelectedItemId(R.id.bottom_profile);
+                            return false;
+                        }
                         return true;
                     case R.id.bottom_write:
-                        Log.e("test", "tt3");
-                        getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout,fragmentb).commit();
+                        if(MyService.getLoginFlag()) {
+                            getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, write).commit();
+                        } else {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            builder.setTitle("알림!").setMessage("로그인 후 사용해주세요!");
+                            builder.setPositiveButton("OK", null);
+                            AlertDialog alertDialog = builder.create();
+                            alertDialog.show();
+                            bottomNavigationView.setSelectedItemId(R.id.bottom_profile);
+                            return false;
+                        }
                         return true;
                     case R.id.bottom_profile:
-                        Log.e("test", "tt2");
+                        getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout,fragment_profile).commit();
                         return true;
                 }
                 return false;
@@ -103,8 +120,12 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout,fragmenta).commit();
-
+        if(MyService.getLoginFlag()) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_map).commit();
+        } else {
+            getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout,fragment_profile).commit();
+            bottomNavigationView.setSelectedItemId(R.id.bottom_profile);
+        }
 
         /** 퍼미션 체크 **/
         if (checkLocationServicesStatus()) {
@@ -114,42 +135,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        /** 자동 로그인 **/
-        AccessToken accessToken = AccessToken.getCurrentAccessToken();
-        boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
-
-        if (isLoggedIn) {
-            startActivity(new Intent(MainActivity.this, choose.class));
-            finish();
-        }
-
-
-        /** 페이스북 로그인 **/
-        callbackManager = CallbackManager.Factory.create();
-
-        LoginManager.getInstance().registerCallback(callbackManager,
-                new FacebookCallback<LoginResult>() {
-
-                    @Override
-                    public void onSuccess(LoginResult loginResult) {
-                        Log.e("e", "로그인 성공");
-                        startActivity(new Intent(MainActivity.this, choose.class));
-                        finish();
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        Log.e("e", "로그인 캔슬");
-                    }
-
-                    @Override
-                    public void onError(FacebookException exception) {
-                        Log.e("e", "로그인 오류");
-                    }
-
-                });
-
-
     }
 
 
@@ -157,8 +142,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        //페이스북 콜백
-        callbackManager.onActivityResult(requestCode, resultCode, data);
+        fragment_profile.onActivityResult(requestCode, resultCode, data);
 
         /** GPS 활성화 여부 조사 **/
         switch (requestCode) {

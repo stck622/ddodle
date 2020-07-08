@@ -1,5 +1,7 @@
 package kr.dgsw.test;
 
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -20,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.facebook.AccessToken;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
 import com.google.android.gms.maps.model.LatLng;
@@ -30,7 +33,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class MyService extends Service {
 
@@ -74,10 +79,26 @@ public class MyService extends Service {
         return fb_id;
     }
 
+    static boolean getLoginFlag() {
+        AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
+        return isLoggedIn;
+    }
+
+    public static boolean isServiceRunningCheck(Context context) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Activity.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if ("kr.dgsw.test.MyService".equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Intent clsIntent = new Intent(this, choose.class);
+        Intent clsIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, clsIntent, 0);
 
         NotificationCompat.Builder clsBuilder;
@@ -122,53 +143,53 @@ public class MyService extends Service {
                     try {
 
                         if (fbdata != null) {
+                            if (fbdata.data.get(fb_id) != null) {
+                                for (int i = 0; i < fbdata.data.get(fb_id).size(); i++) {
+                                    if ((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null)) {
 
-                            for (int i = 0; i < fbdata.data.get(fb_id).size(); i++) {
-                                if ((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null)) {
+                                        double mm = distance(latitude, longitude, Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posX")), Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posY")));
 
-                                    double mm = distance(latitude, longitude, Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posX")), Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posY")));
+                                        if (mm <= 500) {
+                                            if (!flag.contains(i)) {
+                                                flag.add(i);
 
-                                    if (mm <= 500) {
-                                        if(!flag.contains(i)){
-                                            flag.add(i);
+                                                Intent intent = new Intent(MyService.this, MainActivity.class);
+                                                intentData intentdata = new intentData(i);
+                                                intent.putExtra("index", intentdata);
+                                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                PendingIntent pendingIntent = PendingIntent.getActivity(MyService.this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
-                                            Intent intent = new Intent(MyService.this, activity_map.class);
-                                            intentData intentdata = new intentData(i);
-                                            intent.putExtra("index",intentdata);
-                                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                            PendingIntent pendingIntent = PendingIntent.getActivity(MyService.this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+                                                String chId = "test";
+                                                Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION); // 알림 왔을때 사운드.
 
-                                            String chId = "test";
-                                            Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION); // 알림 왔을때 사운드.
+                                                NotificationCompat.Builder notiBuilder = new NotificationCompat.Builder(MyService.this, chId)
+                                                        .setSmallIcon(R.mipmap.ic_launcher)
+                                                        .setContentTitle("낙서를 발견했습니다!")
+                                                        .setContentText("이곳에서 낙서를 작성했었습니다. 클릭해서 확인해주세요.")
+                                                        .setAutoCancel(true)
+                                                        .setSound(soundUri)
+                                                        .setContentIntent(pendingIntent);
 
-                                            NotificationCompat.Builder notiBuilder = new NotificationCompat.Builder(MyService.this, chId)
-                                                    .setSmallIcon(R.mipmap.ic_launcher)
-                                                    .setContentTitle("낙서를 발견했습니다!")
-                                                    .setContentText("이곳에서 낙서를 작성했었습니다. 클릭해서 확인해주세요.")
-                                                    .setAutoCancel(true)
-                                                    .setSound(soundUri)
-                                                    .setContentIntent(pendingIntent);
+                                                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-                                            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                                                /* 안드로이드 오레오 버전 대응 */
+                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                                    String chName = "ch name";
+                                                    NotificationChannel channel = new NotificationChannel(chId, chName, NotificationManager.IMPORTANCE_HIGH);
+                                                    manager.createNotificationChannel(channel);
+                                                }
+                                                manager.notify(0, notiBuilder.build());
 
-                                            /* 안드로이드 오레오 버전 대응 */
-                                            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                                            {
-                                                String chName = "ch name";
-                                                NotificationChannel channel = new NotificationChannel(chId, chName, NotificationManager.IMPORTANCE_HIGH);
-                                                manager.createNotificationChannel(channel);
+                                                Log.e("essas", "INCIRCLE!");
                                             }
-                                            manager.notify(0, notiBuilder.build());
+                                        } else {
+                                            if (flag.contains(i)) {
+                                                flag.remove(flag.indexOf(i));
+                                                Log.e("essas", "OUTCIRCLE!");
+                                            }
+                                        }
 
-                                            Log.e("essas","INCIRCLE!");
-                                        }
-                                    } else {
-                                        if(flag.contains(i)){
-                                            flag.remove(flag.indexOf(i));
-                                            Log.e("essas","OUTCIRCLE!");
-                                        }
                                     }
-
                                 }
                             }
                         }
@@ -192,6 +213,9 @@ public class MyService extends Service {
                 fbdata = dataSnapshot.getValue(fbData.class);
                 fb_id = getfb_id();
 
+                if (MainActivity.fragment_map != null)
+                    MainActivity.fragment_map.reload();
+
                 if (dataSnapshot.child("data").child(fb_id).getValue() == null) {
                     GpsTracker gpsTracker = new GpsTracker(getApplicationContext());
                     double latitude = gpsTracker.getLatitude(); // 위도
@@ -200,6 +224,7 @@ public class MyService extends Service {
                     mRef.child("posX").setValue(String.valueOf(latitude));
                     mRef.child("posY").setValue(String.valueOf(longitude));
                     mRef.child("text").setValue("환영합니다. 낙서를 시작해보세요!");
+                    mRef.child("time").setValue(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date(System.currentTimeMillis())));
                     mRef.push();
                 }
 
