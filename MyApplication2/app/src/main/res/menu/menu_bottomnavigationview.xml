@@ -2,18 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/searchItem"
-        android:icon="@android:drawable/ic_menu_search"
+        android:id="@+id/bottom_map"
+        android:icon="@drawable/map"
         android:title="Map"/>
 
     <item
-        android:id="@+id/cameraItem"
-        android:icon="@android:drawable/ic_menu_camera"
+        android:id="@+id/bottom_write"
+        android:icon="@drawable/write"
         android:title="Write"/>
 
     <item
-        android:id="@+id/callItem"
-        android:icon="@android:drawable/ic_menu_set_as"
+        android:id="@+id/bottom_profile"
+        android:icon="@drawable/icc"
         android:title="Profile"/>
 
 </menu>

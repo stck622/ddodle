@@ -86,15 +86,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
-                    case R.id.searchItem:
+                    case R.id.bottom_map:
                         getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout,fragmenta).commit();
                         Log.e("test", "t1t");
                         return true;
-                    case R.id.cameraItem:
+                    case R.id.bottom_write:
                         Log.e("test", "tt3");
                         getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout,fragmentb).commit();
                         return true;
-                    case R.id.callItem:
+                    case R.id.bottom_profile:
                         Log.e("test", "tt2");
                         return true;
                 }
