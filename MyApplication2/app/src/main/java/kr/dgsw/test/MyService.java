@@ -8,14 +8,18 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
@@ -33,6 +37,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,7 +59,12 @@ public class MyService extends Service {
     private static double latitude;
     private static double longitude;
 
+    static Bitmap profile_img;
+
     ArrayList<Integer> flag = new ArrayList<>();
+
+    static int today = 0;
+
 
     /**
      * fb 데이터 가져오기
@@ -57,6 +72,8 @@ public class MyService extends Service {
     static fbData getfbData() {
         return fbdata;
     }
+
+    static Bitmap getProfile_img(){return profile_img;}
 
 
     /**
@@ -133,7 +150,7 @@ public class MyService extends Service {
                                 GpsTracker gpsTracker = new GpsTracker(getApplicationContext());
                                 latitude = gpsTracker.getLatitude(); // 위도
                                 longitude = gpsTracker.getLongitude(); //경도
-                                Log.e("essas", String.valueOf(latitude) + " , " + String.valueOf(longitude));
+                                //Log.e("essas", String.valueOf(latitude) + " , " + String.valueOf(longitude));
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -154,8 +171,7 @@ public class MyService extends Service {
                                                 flag.add(i);
 
                                                 Intent intent = new Intent(MyService.this, MainActivity.class);
-                                                intentData intentdata = new intentData(i);
-                                                intent.putExtra("index", intentdata);
+                                                intent.putExtra("index", i);
                                                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                                 PendingIntent pendingIntent = PendingIntent.getActivity(MyService.this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
@@ -180,16 +196,17 @@ public class MyService extends Service {
                                                 }
                                                 manager.notify(0, notiBuilder.build());
 
-                                                Log.e("essas", "INCIRCLE!");
+                                                //Log.e("essas", "INCIRCLE!");
                                             }
                                         } else {
                                             if (flag.contains(i)) {
                                                 flag.remove(flag.indexOf(i));
-                                                Log.e("essas", "OUTCIRCLE!");
+                                                //Log.e("essas", "OUTCIRCLE!");
                                             }
                                         }
 
                                     }
+
                                 }
                             }
                         }
@@ -216,6 +233,9 @@ public class MyService extends Service {
                 if (MainActivity.fragment_map != null)
                     MainActivity.fragment_map.reload();
 
+                if (MainActivity.fragment_profile != null)
+                    MainActivity.fragment_profile.reload();
+
                 if (dataSnapshot.child("data").child(fb_id).getValue() == null) {
                     GpsTracker gpsTracker = new GpsTracker(getApplicationContext());
                     double latitude = gpsTracker.getLatitude(); // 위도
@@ -228,8 +248,19 @@ public class MyService extends Service {
                     mRef.push();
                 }
 
-                if (fbdata.data == null)
-                    return;
+                today = 0;
+
+                for (int i = 0; i < fbdata.data.get(fb_id).size(); i++) {
+                    try {
+                        Date now = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date(System.currentTimeMillis())));
+                        Date source = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(fbdata.data.get(fb_id).get(i).get("time"));
+                        if (new SimpleDateFormat("yyyy").format(source).equals(new SimpleDateFormat("yyyy").format(now)) && new SimpleDateFormat("MM").format(source).equals(new SimpleDateFormat("MM").format(now)) && new SimpleDateFormat("dd").format(source).equals(new SimpleDateFormat("dd").format(now))) {
+                            today++;
+                        }
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                }
 
             }
 
@@ -260,6 +291,47 @@ public class MyService extends Service {
         float distanceInMeters = results[0];
 
         return distanceInMeters;
+    }
+
+    static class task extends AsyncTask {
+
+        Profile profile;
+
+        @Override
+        protected Object doInBackground(Object[] objects) {
+
+            if (Profile.getCurrentProfile() == null) {
+                mProfileTracker = new ProfileTracker() {
+                    @Override
+                    protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                        profile = currentProfile;
+                        mProfileTracker.stopTracking();
+                    }
+                };
+            } else {
+                profile = Profile.getCurrentProfile();
+            }
+
+            try {
+                URL url = new URL((profile.getProfilePictureUri(200,200)).toString());
+                URLConnection conn = url.openConnection();
+                conn.connect();
+                BufferedInputStream bis = new BufferedInputStream(conn.getInputStream());
+                profile_img = BitmapFactory.decodeStream(bis);
+                bis.close();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Object o) {
+            super.onPostExecute(o);
+            MainActivity.fragment_profile.reload();
+        }
     }
 
 }

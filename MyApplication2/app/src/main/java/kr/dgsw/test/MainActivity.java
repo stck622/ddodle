@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
     static Map fragment_map;
     Write write;
-    Profile fragment_profile;
+    static Profile fragment_profile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,13 +80,17 @@ public class MainActivity extends AppCompatActivity {
         write = new Write(bottomNavigationView);
         fragment_profile = new Profile();
 
+        Bundle bundle = new Bundle();
+        bundle.putInt("index", getIntent().getIntExtra("index", -1));
+        fragment_map.setArguments(bundle);
+
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
 
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.bottom_map:
-                        if(MyService.getLoginFlag()) {
+                        if (MyService.getLoginFlag()) {
                             getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_map).commit();
                         } else {
                             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -99,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         return true;
                     case R.id.bottom_write:
-                        if(MyService.getLoginFlag()) {
+                        if (MyService.getLoginFlag()) {
                             getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, write).commit();
                         } else {
                             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -112,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         return true;
                     case R.id.bottom_profile:
-                        getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout,fragment_profile).commit();
+                        getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_profile).commit();
                         return true;
                 }
                 return false;
@@ -120,10 +124,11 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        if(MyService.getLoginFlag()) {
+        if (MyService.getLoginFlag()) {
             getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_map).commit();
+            new MyService.task().execute();
         } else {
-            getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout,fragment_profile).commit();
+            getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_profile).commit();
             bottomNavigationView.setSelectedItemId(R.id.bottom_profile);
         }
 

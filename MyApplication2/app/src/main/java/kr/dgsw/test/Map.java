@@ -31,6 +31,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -46,6 +47,8 @@ public class Map extends Fragment implements OnMapReadyCallback {
 
     String source;
 
+    int index = -1;
+
     public void reload() {
         if(getFragmentManager() == null)
             return;
@@ -60,6 +63,10 @@ public class Map extends Fragment implements OnMapReadyCallback {
 
         mapView = (MapView) viewGroup.findViewById(R.id.map);
         mapView.getMapAsync(this);
+
+        Bundle bundle = getArguments();
+        index = bundle.getInt("index",-1);
+        bundle.putInt("index",-1);
 
 
         return viewGroup;
@@ -193,6 +200,39 @@ public class Map extends Fragment implements OnMapReadyCallback {
         googleMap.addMarker(markerOptions);
 
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15));
+
+        if(index != -1){
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            builder.setTitle(fbdata.data.get(fb_id).get(index).get("time"));
+            editText = new EditText(getContext());
+            editText.setText(fbdata.data.get(fb_id).get(index).get("text"));
+            builder.setView(editText);
+
+            source = editText.getText().toString();
+
+            builder.setPositiveButton("OK", null);
+
+            builder.setNegativeButton("수정", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (!source.trim().equals(editText.getText().toString().trim())) {
+                        DatabaseReference mRef = FirebaseDatabase.getInstance().getReference().child("data").child(fb_id).child(String.valueOf(index));
+                        mRef.child("text").setValue(editText.getText().toString());
+                        mRef.push();
+                    }
+                }
+            });
+
+            builder.setNeutralButton("삭제", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    FirebaseDatabase.getInstance().getReference().child("data").child(fb_id).child(String.valueOf(index)).removeValue();
+                }
+            });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+            index = -1;
+        }
 
     }
 
