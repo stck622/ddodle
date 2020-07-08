@@ -152,6 +152,7 @@ public class MyService extends Service {
                                 GpsTracker gpsTracker = new GpsTracker(getApplicationContext());
                                 latitude = gpsTracker.getLatitude(); // 위도
                                 longitude = gpsTracker.getLongitude(); //경도
+                                Map.showMyPos(latitude,longitude);
                                 //Log.e("essas", String.valueOf(latitude) + " , " + String.valueOf(longitude));
                             } catch (Exception e) {
                                 e.printStackTrace();

@@ -31,9 +31,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class Map extends Fragment implements OnMapReadyCallback {
 
@@ -48,6 +45,12 @@ public class Map extends Fragment implements OnMapReadyCallback {
     String source;
 
     int index = -1;
+
+    static GoogleMap googleMap = null;
+
+    static BitmapDrawable bitmapdraw ;
+
+    static Marker Pos_Marker = null;
 
     public void reload() {
         if(getFragmentManager() == null)
@@ -68,6 +71,7 @@ public class Map extends Fragment implements OnMapReadyCallback {
         index = bundle.getInt("index",-1);
         bundle.putInt("index",-1);
 
+        bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.icon);
 
         return viewGroup;
     }
@@ -129,9 +133,7 @@ public class Map extends Fragment implements OnMapReadyCallback {
         fb_id = MyService.getfb_id();
         fbdata = MyService.getfbData();
 
-        GpsTracker gpsTracker = new GpsTracker(getContext());
-        double latitude = gpsTracker.getLatitude(); // 위도
-        double longitude = gpsTracker.getLongitude(); //경도
+        this.googleMap = googleMap;
 
         for (int i = 0; i < fbdata.data.get(fb_id).size(); i++) {
             if ((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null)) {
@@ -185,21 +187,14 @@ public class Map extends Fragment implements OnMapReadyCallback {
                 googleMap.addCircle(circle);
 
             }
+
+            GpsTracker gpsTracker = new GpsTracker(getContext());
+            double latitude = gpsTracker.getLatitude(); // 위도
+            double longitude = gpsTracker.getLongitude(); //경도
+            showMyPos(latitude,longitude);
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15));
+
         }
-
-        MarkerOptions markerOptions = new MarkerOptions();
-
-        BitmapDrawable bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.icon);
-        Bitmap b = bitmapdraw.getBitmap();
-        Bitmap smallMarker = Bitmap.createScaledBitmap(b, 150, 150, false);
-        markerOptions.icon(BitmapDescriptorFactory.fromBitmap(smallMarker));
-
-        LatLng pos = new LatLng(latitude, longitude);
-        markerOptions.position(pos);
-
-        googleMap.addMarker(markerOptions);
-
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15));
 
         if(index != -1){
             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -233,7 +228,25 @@ public class Map extends Fragment implements OnMapReadyCallback {
             alertDialog.show();
             index = -1;
         }
-
     }
+
+
+    static void showMyPos(double latitude,double longitude){
+
+        if(Pos_Marker != null)
+            Pos_Marker.remove();
+
+        MarkerOptions markerOptions = new MarkerOptions();
+
+        Bitmap b = bitmapdraw.getBitmap();
+        Bitmap smallMarker = Bitmap.createScaledBitmap(b, 150, 150, false);
+        markerOptions.icon(BitmapDescriptorFactory.fromBitmap(smallMarker));
+
+        LatLng pos = new LatLng(latitude, longitude);
+        markerOptions.position(pos);
+
+        Pos_Marker = googleMap.addMarker(markerOptions);
+    }
+
 
 }

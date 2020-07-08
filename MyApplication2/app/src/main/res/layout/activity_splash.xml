@@ -43,7 +43,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
         android:gravity="center_horizontal"
-        android:text="LOADING"
+        android:text="LOADING.."
         android:textAlignment="center"
         android:textColor="#FFFFFF"
         android:textSize="50dp"
