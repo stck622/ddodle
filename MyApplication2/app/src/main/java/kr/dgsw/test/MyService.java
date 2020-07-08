@@ -73,7 +73,9 @@ public class MyService extends Service {
         return fbdata;
     }
 
-    static Bitmap getProfile_img(){return profile_img;}
+    static Bitmap getProfile_img() {
+        return profile_img;
+    }
 
 
     /**
@@ -162,7 +164,7 @@ public class MyService extends Service {
                         if (fbdata != null) {
                             if (fbdata.data.get(fb_id) != null) {
                                 for (int i = 0; i < fbdata.data.get(fb_id).size(); i++) {
-                                    if ((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null)) {
+                                    if ((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null) && (fbdata.data.get(fb_id).get(i).get("time") != null)) {
 
                                         double mm = distance(latitude, longitude, Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posX")), Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posY")));
 
@@ -249,17 +251,24 @@ public class MyService extends Service {
                 }
 
                 today = 0;
-
-                for (int i = 0; i < fbdata.data.get(fb_id).size(); i++) {
-                    try {
-                        Date now = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date(System.currentTimeMillis())));
-                        Date source = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(fbdata.data.get(fb_id).get(i).get("time"));
-                        if (new SimpleDateFormat("yyyy").format(source).equals(new SimpleDateFormat("yyyy").format(now)) && new SimpleDateFormat("MM").format(source).equals(new SimpleDateFormat("MM").format(now)) && new SimpleDateFormat("dd").format(source).equals(new SimpleDateFormat("dd").format(now))) {
-                            today++;
+                if (fbdata.data.get(fb_id) != null) {
+                    for (int i = 0; i < fbdata.data.get(fb_id).size(); i++) {
+                        if (fbdata.data.get(fb_id).get(i) != null) {
+                            if ((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null) && (fbdata.data.get(fb_id).get(i).get("time") != null))
+                            {
+                                try {
+                                    Date now = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date(System.currentTimeMillis())));
+                                    Date source = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(fbdata.data.get(fb_id).get(i).get("time"));
+                                    if (new SimpleDateFormat("yyyy").format(source).equals(new SimpleDateFormat("yyyy").format(now)) && new SimpleDateFormat("MM").format(source).equals(new SimpleDateFormat("MM").format(now)) && new SimpleDateFormat("dd").format(source).equals(new SimpleDateFormat("dd").format(now))) {
+                                        today++;
+                                    }
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         }
-                    } catch (ParseException e) {
-                        e.printStackTrace();
                     }
+
                 }
 
             }
@@ -313,7 +322,7 @@ public class MyService extends Service {
             }
 
             try {
-                URL url = new URL((profile.getProfilePictureUri(200,200)).toString());
+                URL url = new URL((profile.getProfilePictureUri(200, 200)).toString());
                 URLConnection conn = url.openConnection();
                 conn.connect();
                 BufferedInputStream bis = new BufferedInputStream(conn.getInputStream());
