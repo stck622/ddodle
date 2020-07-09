@@ -19,8 +19,8 @@ public class Splash extends AppCompatActivity {
 
         handler = new Handler();
 
+        /** 포그라운드 서비스 동작 **/
         if (MyService.getLoginFlag()) {
-            /** 포그라운드 서비스 동작 **/
             if (!MyService.isServiceRunningCheck(getApplicationContext())) {
                 if (Build.VERSION.SDK_INT >= 26) { //안드로이드 버전 체크
                     this.startForegroundService(new Intent(this, MyService.class));
@@ -32,8 +32,8 @@ public class Splash extends AppCompatActivity {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    while (MyService.getfbData() == null) ;
-                    handler.postDelayed(new splashhandler(), 0);
+                    while (MyService.getfbData() == null) ; //데이터 들어오면
+                    handler.postDelayed(new splashhandler(), 0); //메인화면으로 이동
                 }
             }).start();
 

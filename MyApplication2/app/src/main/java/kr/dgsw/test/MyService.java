@@ -164,7 +164,7 @@ public class MyService extends Service {
 
                         if (fbdata != null) {
                             if (fbdata.data.get(fb_id) != null) {
-                                for (int i = 0; i < fbdata.data.get(fb_id).size(); i++) {
+                                for (int i = 1; i < fbdata.data.get(fb_id).size(); i++) {
                                     if ((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null) && (fbdata.data.get(fb_id).get(i).get("time") != null)) {
 
                                         double mm = distance(latitude, longitude, Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posX")), Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posY")));
@@ -253,7 +253,7 @@ public class MyService extends Service {
 
                 today = 0;
                 if (fbdata.data.get(fb_id) != null) {
-                    for (int i = 0; i < fbdata.data.get(fb_id).size(); i++) {
+                    for (int i = 1; i < fbdata.data.get(fb_id).size(); i++) {
                         if (fbdata.data.get(fb_id).get(i) != null) {
                             if ((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null) && (fbdata.data.get(fb_id).get(i).get("time") != null)) {
                                 try {

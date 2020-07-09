@@ -42,11 +42,14 @@ import java.util.Date;
 
 public class Profile extends Fragment {
 
+    ViewGroup viewGroup;
+
     ProfileTracker mProfileTracker;
     com.facebook.Profile profile;
+    CallbackManager callbackManager;
 
-    ViewGroup viewGroup;
-    CallbackManager callbackManager; //페이스북 로그인 콜백
+    TextView tv_name;
+    TextView tv_id;
 
     public void reload() {
         if (getFragmentManager() == null)
@@ -55,9 +58,6 @@ public class Profile extends Fragment {
         ft.detach(Profile.this).attach(Profile.this).commit();
     }
 
-    TextView tv_name;
-    TextView tv_id;
-    @SuppressLint("SetTextI18n")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -71,7 +71,6 @@ public class Profile extends Fragment {
 
 
         if (MyService.getLoginFlag()) {
-
             if (com.facebook.Profile.getCurrentProfile() == null) {
                 mProfileTracker = new ProfileTracker() {
                     @Override
@@ -93,7 +92,7 @@ public class Profile extends Fragment {
             }
 
             if (MyService.getfbData() != null)
-                tv_write_cnt.setText(MyService.getfbData().data.get(profile.getId()).size() + "");
+                tv_write_cnt.setText(MyService.getfbData().data.get(profile.getId()).size()-1 + "");
             else
                 tv_write_cnt.setText("load");
 
@@ -127,7 +126,6 @@ public class Profile extends Fragment {
 
                     @Override
                     public void onSuccess(LoginResult loginResult) {
-                        //Log.e("e", "로그인 성공");
 
                         if (com.facebook.Profile.getCurrentProfile() == null) {
                             mProfileTracker = new ProfileTracker() {

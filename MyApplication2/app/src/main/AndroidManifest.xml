@@ -51,6 +51,12 @@
             android:name=".MyService"
             android:enabled="true"
             android:exported="true" />
+
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false"/>
+
+
     </application>
 
 </manifest>

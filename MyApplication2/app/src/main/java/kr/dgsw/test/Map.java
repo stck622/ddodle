@@ -1,13 +1,11 @@
 package kr.dgsw.test;
 
-
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +20,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -135,7 +132,18 @@ public class Map extends Fragment implements OnMapReadyCallback {
 
         this.googleMap = googleMap;
 
-        for (int i = 0; i < fbdata.data.get(fb_id).size(); i++) {
+        if(fbdata == null) {
+            MainActivity.fragment_map.reload();
+            return;
+
+        }
+
+        if(fbdata.data == null) {
+            MainActivity.fragment_map.reload();
+            return;
+        }
+
+        for (int i = 1; i < fbdata.data.get(fb_id).size(); i++) {
             if ((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null)) {
                 MarkerOptions markerOptions = new MarkerOptions();
                 LatLng pos = new LatLng(Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posX")), Double.parseDouble(fbdata.data.get(fb_id).get(i).get("posY")));
@@ -188,13 +196,13 @@ public class Map extends Fragment implements OnMapReadyCallback {
 
             }
 
-            GpsTracker gpsTracker = new GpsTracker(getContext());
-            double latitude = gpsTracker.getLatitude(); // 위도
-            double longitude = gpsTracker.getLongitude(); //경도
-            showMyPos(latitude,longitude);
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15));
-
         }
+
+        GpsTracker gpsTracker = new GpsTracker(getContext());
+        double latitude = gpsTracker.getLatitude(); // 위도
+        double longitude = gpsTracker.getLongitude(); //경도
+        showMyPos(latitude,longitude);
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15));
 
         if(index != -1){
             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
