@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -111,7 +112,10 @@ public class Profile extends Fragment {
                 boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
                 if(!isLoggedIn) {
                     getActivity().stopService(new Intent(getContext(), MyService.class));
+                    Toast.makeText(getActivity(), "로그아웃", Toast.LENGTH_LONG).show();
                     MyService.profile_img = null;
+                } else {
+                    Toast.makeText(getActivity(), "로그인 성공", Toast.LENGTH_LONG).show();
                 }
                 reload();
             }

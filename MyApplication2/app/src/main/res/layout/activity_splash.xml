@@ -60,6 +60,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView2"
         app:lottie_autoPlay="true"
-        app:lottie_fileName="loading.json" />
+        app:lottie_fileName="loading.json"
+        app:lottie_loop="true"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -130,6 +130,8 @@ public class MainActivity extends AppCompatActivity {
         if (MyService.getLoginFlag()) {
             getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_map).commit();
 
+            Toast.makeText(this, "자동 로그인 성공", Toast.LENGTH_LONG).show();
+
             if (com.facebook.Profile.getCurrentProfile() == null) {
                 mProfileTracker = new ProfileTracker() {
                     @Override
@@ -147,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_profile).commit();
             bottomNavigationView.setSelectedItemId(R.id.bottom_profile);
+            Toast.makeText(this, "로그인을 해주세요", Toast.LENGTH_LONG).show();
         }
 
         /** 퍼미션 체크 **/

@@ -2,11 +2,22 @@ package kr.dgsw.test;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Process;
 import android.util.Log;
+import android.widget.EditText;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class Splash extends AppCompatActivity {
 
@@ -17,28 +28,65 @@ public class Splash extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        handler = new Handler();
+        ConnectivityManager cm =
+                (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        /** 포그라운드 서비스 동작 **/
-        if (MyService.getLoginFlag()) {
-            if (!MyService.isServiceRunningCheck(getApplicationContext())) {
-                if (Build.VERSION.SDK_INT >= 26) { //안드로이드 버전 체크
-                    this.startForegroundService(new Intent(this, MyService.class));
-                } else {
-                    this.startService(new Intent(this, MyService.class));
+        @SuppressLint("MissingPermission") NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+
+        if (!isConnected) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(Splash.this);
+            builder.setTitle("알림");
+            builder.setMessage("인터넷 연결을 확인해주세요!");
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    moveTaskToBack(true);                        // 태스크를 백그라운드로 이동
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        finishAndRemoveTask();                        // 액티비티 종료 + 태스크 리스트에서 지우기
+                    }
+                    Process.killProcess(Process.myPid());    // 앱 프로세스 종료
                 }
+            });
+            builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialogInterface) {
+                    moveTaskToBack(true);                        // 태스크를 백그라운드로 이동
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        finishAndRemoveTask();                        // 액티비티 종료 + 태스크 리스트에서 지우기
+                    }
+                    Process.killProcess(Process.myPid());    // 앱 프로세스 종료
+                }
+            });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+        } else {
+
+            handler = new Handler();
+
+            /** 포그라운드 서비스 동작 **/
+            if (MyService.getLoginFlag()) {
+                if (!MyService.isServiceRunningCheck(getApplicationContext())) {
+                    if (Build.VERSION.SDK_INT >= 26) { //안드로이드 버전 체크
+                        this.startForegroundService(new Intent(this, MyService.class));
+                    } else {
+                        this.startService(new Intent(this, MyService.class));
+                    }
+                }
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while (MyService.getfbData() == null) ; //데이터 들어오면
+                        handler.postDelayed(new splashhandler(), 0); //메인화면으로 이동
+                    }
+                }).start();
+
+            } else {
+                handler.postDelayed(new splashhandler(), 3000);
             }
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (MyService.getfbData() == null) ; //데이터 들어오면
-                    handler.postDelayed(new splashhandler(), 0); //메인화면으로 이동
-                }
-            }).start();
-
-        } else {
-            handler.postDelayed(new splashhandler(), 3000);
         }
 
     }

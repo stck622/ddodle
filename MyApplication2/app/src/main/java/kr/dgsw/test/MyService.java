@@ -61,7 +61,7 @@ public class MyService extends Service {
 
     static Bitmap profile_img;
 
-    ArrayList<Integer> flag = new ArrayList<>();
+    static ArrayList<Integer> flag = new ArrayList<>();
 
     static int today = 0;
 

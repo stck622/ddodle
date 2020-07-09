@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.DatabaseReference;
@@ -50,7 +51,9 @@ public class Write extends Fragment {
                 mRef.child("posY").setValue(String.valueOf(longitude));
                 mRef.child("text").setValue(((EditText) viewGroup.findViewById(R.id.ed_write)).getText().toString());
                 mRef.child("time").setValue(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date(System.currentTimeMillis())));
+                MyService.flag.add(fbdata.data.get(fb_id).size());
                 mRef.push();
+                Toast.makeText(getActivity(), "낙서를 기록했습니다!\n일시 : " + new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date(System.currentTimeMillis())), Toast.LENGTH_LONG).show();
                 ((EditText) viewGroup.findViewById(R.id.ed_write)).setText("");
                 bottomNavigationView.setSelectedItemId(R.id.bottom_map);
             }
