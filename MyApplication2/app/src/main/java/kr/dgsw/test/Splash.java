@@ -35,6 +35,7 @@ public class Splash extends AppCompatActivity {
         boolean isConnected = activeNetwork != null &&
                 activeNetwork.isConnectedOrConnecting();
 
+        /* 인터넷 연결 여부 채크 */
         if (!isConnected) {
             AlertDialog.Builder builder = new AlertDialog.Builder(Splash.this);
             builder.setTitle("알림");
@@ -91,6 +92,7 @@ public class Splash extends AppCompatActivity {
 
     }
 
+    /* 메인 엑티비티 로딩 */
     private class splashhandler implements Runnable {
         public void run() {
             startActivity(new Intent(getApplication(), MainActivity.class)); //로딩이 끝난 후, ChoiceFunction 이동

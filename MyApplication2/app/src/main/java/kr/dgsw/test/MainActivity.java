@@ -65,8 +65,9 @@ public class MainActivity extends AppCompatActivity {
 
     BottomNavigationView bottomNavigationView;
 
+    /* static은 프래그먼트 reload 를 위함 */
     static Map fragment_map;
-    Write write;
+    Write write; //static 노쓸모
     static Profile fragment_profile;
 
     ProfileTracker mProfileTracker;
@@ -79,55 +80,34 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNavigationView = findViewById(R.id.navigationView);
 
+        /* 프래그먼트 세팅 */
         fragment_map = new Map();
         write = new Write(bottomNavigationView);
         fragment_profile = new Profile();
 
+        /* 팝업클릭시 마커 연결 */
         Bundle bundle = new Bundle();
         bundle.putInt("index", getIntent().getIntExtra("index", -1));
         fragment_map.setArguments(bundle);
 
+        /* 바텀 네비게이션 이벤트 */
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.bottom_map:
-                        if (MyService.getLoginFlag()) {
-                            getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_map).commit();
-                        } else {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                            builder.setTitle("알림!").setMessage("로그인 후 사용해주세요!");
-                            builder.setPositiveButton("OK", null);
-                            AlertDialog alertDialog = builder.create();
-                            alertDialog.show();
-                            bottomNavigationView.setSelectedItemId(R.id.bottom_profile);
-                            return false;
-                        }
-                        return true;
+                        return alter_need_login();
                     case R.id.bottom_write:
-                        if (MyService.getLoginFlag()) {
-                            getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, write).commit();
-                        } else {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                            builder.setTitle("알림!").setMessage("로그인 후 사용해주세요!");
-                            builder.setPositiveButton("OK", null);
-                            AlertDialog alertDialog = builder.create();
-                            alertDialog.show();
-                            bottomNavigationView.setSelectedItemId(R.id.bottom_profile);
-                            return false;
-                        }
-                        return true;
+                        return alter_need_login();
                     case R.id.bottom_profile:
                         getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_profile).commit();
                         return true;
                 }
                 return false;
             }
-
         });
 
-        if (MyService.getLoginFlag()) {
+        if (MyService.getLoginFlag()) { //로그인 했을경우
             getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_map).commit();
 
             Toast.makeText(this, "자동 로그인 성공", Toast.LENGTH_LONG).show();
@@ -137,12 +117,12 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     protected void onCurrentProfileChanged(com.facebook.Profile oldProfile, com.facebook.Profile currentProfile) {
                         profile = currentProfile;
-                        new MyService.task(profile).execute();
+                        new MyService.task(profile).execute(); //서비스 시작
                         mProfileTracker.stopTracking();
                     }
                 };
             } else {
-                profile = com.facebook.Profile.getCurrentProfile();
+                profile = com.facebook.Profile.getCurrentProfile(); //서비스 시작
                 new MyService.task(profile).execute();
             }
 
@@ -167,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        fragment_profile.onActivityResult(requestCode, resultCode, data);
+        fragment_profile.onActivityResult(requestCode, resultCode, data); //프로필 프래그먼트 호출(페이스북 콜백)
 
         /** GPS 활성화 여부 조사 **/
         switch (requestCode) {
@@ -181,6 +161,21 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
 
+    }
+
+    boolean alter_need_login() {
+        if (MyService.getLoginFlag()) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_map).commit();
+        } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setTitle("알림!").setMessage("로그인 후 사용해주세요!");
+            builder.setPositiveButton("OK", null);
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+            bottomNavigationView.setSelectedItemId(R.id.bottom_profile);
+            return false;
+        }
+        return true;
     }
 
 
@@ -230,11 +225,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int PERMISSIONS_REQUEST_CODE = 100;
     String[] REQUIRED_PERMISSIONS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
-
 
     void checkRunTimePermission() {
 
@@ -279,7 +272,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
     private void showDialogForLocationServiceSetting() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -303,7 +295,6 @@ public class MainActivity extends AppCompatActivity {
         });
         builder.create().show();
     }
-
 
     public boolean checkLocationServicesStatus() {
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);

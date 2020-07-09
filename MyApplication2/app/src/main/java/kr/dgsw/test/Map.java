@@ -45,12 +45,13 @@ public class Map extends Fragment implements OnMapReadyCallback {
 
     static GoogleMap googleMap = null;
 
-    static BitmapDrawable bitmapdraw ;
+    static BitmapDrawable bitmapdraw;
 
     static Marker Pos_Marker = null;
 
+    /* 페이지 리로드 */
     public void reload() {
-        if(getFragmentManager() == null)
+        if (getFragmentManager() == null)
             return;
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         ft.detach(Map.this).attach(Map.this).commit();
@@ -61,13 +62,16 @@ public class Map extends Fragment implements OnMapReadyCallback {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         viewGroup = (ViewGroup) inflater.inflate(R.layout.fragment_map, container, false);
 
+        /* 맵뷰 세팅 */
         mapView = (MapView) viewGroup.findViewById(R.id.map);
         mapView.getMapAsync(this);
 
+        /* 푸시로 온경우 인덱스 받기 */
         Bundle bundle = getArguments();
-        index = bundle.getInt("index",-1);
-        bundle.putInt("index",-1);
+        index = bundle.getInt("index", -1);
+        bundle.putInt("index", -1);
 
+        /* MY POS 비트맵 가져오기 */
         bitmapdraw = (BitmapDrawable) getResources().getDrawable(R.drawable.icon);
 
         return viewGroup;
@@ -127,21 +131,26 @@ public class Map extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
+        /* ID, DATA 받기 */
         fb_id = MyService.getfb_id();
         fbdata = MyService.getfbData();
 
-        this.googleMap = googleMap;
+        this.googleMap = googleMap; //구글맵 초기화
 
-        if(fbdata == null) {
-            MainActivity.fragment_map.reload();
-            return;
+        /* 데이터 로딩 덜됐을 경우 리로딩*/
 
-        }
-
-        if(fbdata.data == null) {
+        if (fbdata == null) {
             MainActivity.fragment_map.reload();
             return;
         }
+
+        if (fbdata.data == null) {
+            MainActivity.fragment_map.reload();
+            return;
+        }
+
+
 
         for (int i = 1; i < fbdata.data.get(fb_id).size(); i++) {
             if ((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null)) {
@@ -198,13 +207,15 @@ public class Map extends Fragment implements OnMapReadyCallback {
 
         }
 
+        /* MY LOCATION 표시 */
         GpsTracker gpsTracker = new GpsTracker(getContext());
         double latitude = gpsTracker.getLatitude(); // 위도
         double longitude = gpsTracker.getLongitude(); //경도
-        showMyPos(latitude,longitude);
+        showMyPos(latitude, longitude);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15));
 
-        if(index != -1){
+        /* 푸시를 클릭한 맵뷰일 경우 */
+        if (index != -1) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
             builder.setTitle(fbdata.data.get(fb_id).get(index).get("time"));
             editText = new EditText(getContext());
@@ -234,14 +245,17 @@ public class Map extends Fragment implements OnMapReadyCallback {
             });
             AlertDialog alertDialog = builder.create();
             alertDialog.show();
-            index = -1;
+
+            index = -1; //인텐트 데이터 초기화 (안하면 계속 마커 이동함)
+
         }
+
     }
 
 
-    static void showMyPos(double latitude,double longitude){
+    static void showMyPos(double latitude, double longitude) {
 
-        if(Pos_Marker != null)
+        if (Pos_Marker != null)
             Pos_Marker.remove();
 
         MarkerOptions markerOptions = new MarkerOptions();

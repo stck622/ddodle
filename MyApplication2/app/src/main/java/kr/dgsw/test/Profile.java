@@ -52,6 +52,7 @@ public class Profile extends Fragment {
     TextView tv_name;
     TextView tv_id;
 
+    /* 프래그먼트 리로드 */
     public void reload() {
         if (getFragmentManager() == null)
             return;
@@ -64,13 +65,13 @@ public class Profile extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         viewGroup = (ViewGroup) inflater.inflate(R.layout.fragment_profile, container, false);
 
-         tv_name = viewGroup.findViewById(R.id.tv_name);
-         tv_id = viewGroup.findViewById(R.id.tv_id);
+        tv_name = viewGroup.findViewById(R.id.tv_name);
+        tv_id = viewGroup.findViewById(R.id.tv_id);
         TextView tv_write_cnt = viewGroup.findViewById(R.id.tv_write_cnt);
         TextView tv_today = viewGroup.findViewById(R.id.tv_today);
         ImageView img_view = viewGroup.findViewById(R.id.img_profile);
 
-
+        /* 프로필 페이지 값 세팅 */
         if (MyService.getLoginFlag()) {
             if (com.facebook.Profile.getCurrentProfile() == null) {
                 mProfileTracker = new ProfileTracker() {
@@ -88,12 +89,12 @@ public class Profile extends Fragment {
                 tv_id.setText(profile.getId());
             }
 
-            if(MyService.profile_img != null){
+            if (MyService.profile_img != null) {
                 img_view.setImageBitmap(MyService.getProfile_img());
             }
 
             if (MyService.getfbData() != null)
-                tv_write_cnt.setText(MyService.getfbData().data.get(profile.getId()).size()-1 + "");
+                tv_write_cnt.setText(MyService.getfbData().data.get(profile.getId()).size() - 1 + "");
             else
                 tv_write_cnt.setText("load");
 
@@ -108,9 +109,10 @@ public class Profile extends Fragment {
             @Override
             protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken,
                                                        AccessToken currentAccessToken) {
+
                 AccessToken accessToken = currentAccessToken.getCurrentAccessToken();
                 boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
-                if(!isLoggedIn) {
+                if (!isLoggedIn) {
                     getActivity().stopService(new Intent(getContext(), MyService.class));
                     Toast.makeText(getActivity(), "로그아웃", Toast.LENGTH_LONG).show();
                     MyService.profile_img = null;
@@ -124,7 +126,6 @@ public class Profile extends Fragment {
 
         /** 페이스북 로그인 **/
         callbackManager = CallbackManager.Factory.create();
-
         LoginManager.getInstance().registerCallback(callbackManager,
                 new FacebookCallback<LoginResult>() {
 
@@ -136,13 +137,13 @@ public class Profile extends Fragment {
                                 @Override
                                 protected void onCurrentProfileChanged(com.facebook.Profile oldProfile, com.facebook.Profile currentProfile) {
                                     profile = currentProfile;
-                                    new MyService.task(profile).execute();
+                                    new MyService.task(profile).execute(); //서비스 시작
                                     mProfileTracker.stopTracking();
                                 }
                             };
                         } else {
                             profile = com.facebook.Profile.getCurrentProfile();
-                            new MyService.task(profile).execute();
+                            new MyService.task(profile).execute(); //서비스 시작
                         }
 
                         /** 포그라운드 서비스 동작 **/
@@ -157,12 +158,10 @@ public class Profile extends Fragment {
 
                     @Override
                     public void onCancel() {
-                        Log.e("e", "로그인 캔슬");
                     }
 
                     @Override
                     public void onError(FacebookException exception) {
-                        Log.e("e", "로그인 오류");
                     }
 
 
@@ -174,7 +173,7 @@ public class Profile extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        callbackManager.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data); //페이스북 로그인 콜백 등록
     }
 
 }
