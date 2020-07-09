@@ -69,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
     Write write;
     static Profile fragment_profile;
 
+    ProfileTracker mProfileTracker;
+    com.facebook.Profile profile;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -126,7 +129,21 @@ public class MainActivity extends AppCompatActivity {
 
         if (MyService.getLoginFlag()) {
             getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_map).commit();
-            new MyService.task().execute();
+
+            if (com.facebook.Profile.getCurrentProfile() == null) {
+                mProfileTracker = new ProfileTracker() {
+                    @Override
+                    protected void onCurrentProfileChanged(com.facebook.Profile oldProfile, com.facebook.Profile currentProfile) {
+                        profile = currentProfile;
+                        new MyService.task(profile).execute();
+                        mProfileTracker.stopTracking();
+                    }
+                };
+            } else {
+                profile = com.facebook.Profile.getCurrentProfile();
+                new MyService.task(profile).execute();
+            }
+
         } else {
             getSupportFragmentManager().beginTransaction().replace(R.id.frameLayout, fragment_profile).commit();
             bottomNavigationView.setSelectedItemId(R.id.bottom_profile);

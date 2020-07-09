@@ -55,37 +55,38 @@ public class Profile extends Fragment {
         ft.detach(Profile.this).attach(Profile.this).commit();
     }
 
-    public void getProfile() {
-        if (com.facebook.Profile.getCurrentProfile() == null) {
-            mProfileTracker = new ProfileTracker() {
-                @Override
-                protected void onCurrentProfileChanged(com.facebook.Profile oldProfile, com.facebook.Profile currentProfile) {
-                    profile = currentProfile;
-                    mProfileTracker.stopTracking();
-                }
-            };
-        } else {
-            profile = com.facebook.Profile.getCurrentProfile();
-        }
-    }
-
+    TextView tv_name;
+    TextView tv_id;
     @SuppressLint("SetTextI18n")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         viewGroup = (ViewGroup) inflater.inflate(R.layout.fragment_profile, container, false);
 
-        TextView tv_name = viewGroup.findViewById(R.id.tv_name);
-        TextView tv_id = viewGroup.findViewById(R.id.tv_id);
+         tv_name = viewGroup.findViewById(R.id.tv_name);
+         tv_id = viewGroup.findViewById(R.id.tv_id);
         TextView tv_write_cnt = viewGroup.findViewById(R.id.tv_write_cnt);
         TextView tv_today = viewGroup.findViewById(R.id.tv_today);
         ImageView img_view = viewGroup.findViewById(R.id.img_profile);
 
 
         if (MyService.getLoginFlag()) {
-            getProfile();
-            tv_name.setText(profile.getName());
-            tv_id.setText(profile.getId());
+
+            if (com.facebook.Profile.getCurrentProfile() == null) {
+                mProfileTracker = new ProfileTracker() {
+                    @Override
+                    protected void onCurrentProfileChanged(com.facebook.Profile oldProfile, com.facebook.Profile currentProfile) {
+                        profile = currentProfile;
+                        mProfileTracker.stopTracking();
+                        tv_name.setText(profile.getName());
+                        tv_id.setText(profile.getId());
+                    }
+                };
+            } else {
+                profile = com.facebook.Profile.getCurrentProfile();
+                tv_name.setText(profile.getName());
+                tv_id.setText(profile.getId());
+            }
 
             if(MyService.profile_img != null){
                 img_view.setImageBitmap(MyService.getProfile_img());
@@ -127,7 +128,21 @@ public class Profile extends Fragment {
                     @Override
                     public void onSuccess(LoginResult loginResult) {
                         //Log.e("e", "로그인 성공");
-                        new MyService.task().execute();
+
+                        if (com.facebook.Profile.getCurrentProfile() == null) {
+                            mProfileTracker = new ProfileTracker() {
+                                @Override
+                                protected void onCurrentProfileChanged(com.facebook.Profile oldProfile, com.facebook.Profile currentProfile) {
+                                    profile = currentProfile;
+                                    new MyService.task(profile).execute();
+                                    mProfileTracker.stopTracking();
+                                }
+                            };
+                        } else {
+                            profile = com.facebook.Profile.getCurrentProfile();
+                            new MyService.task(profile).execute();
+                        }
+
                         /** 포그라운드 서비스 동작 **/
                         if (!MyService.isServiceRunningCheck(getContext())) {
                             if (Build.VERSION.SDK_INT >= 26) { //안드로이드 버전 체크

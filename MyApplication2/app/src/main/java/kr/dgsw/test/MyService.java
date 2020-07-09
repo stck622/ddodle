@@ -152,7 +152,7 @@ public class MyService extends Service {
                                 GpsTracker gpsTracker = new GpsTracker(getApplicationContext());
                                 latitude = gpsTracker.getLatitude(); // 위도
                                 longitude = gpsTracker.getLongitude(); //경도
-                                Map.showMyPos(latitude,longitude);
+                                Map.showMyPos(latitude, longitude);
                                 //Log.e("essas", String.valueOf(latitude) + " , " + String.valueOf(longitude));
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -255,8 +255,7 @@ public class MyService extends Service {
                 if (fbdata.data.get(fb_id) != null) {
                     for (int i = 0; i < fbdata.data.get(fb_id).size(); i++) {
                         if (fbdata.data.get(fb_id).get(i) != null) {
-                            if ((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null) && (fbdata.data.get(fb_id).get(i).get("time") != null))
-                            {
+                            if ((fbdata.data.get(fb_id).get(i) != null) && (fbdata.data.get(fb_id).get(i).get("posX") != null) && (fbdata.data.get(fb_id).get(i).get("posY") != null) && (fbdata.data.get(fb_id).get(i).get("text") != null) && (fbdata.data.get(fb_id).get(i).get("time") != null)) {
                                 try {
                                     Date now = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date(System.currentTimeMillis())));
                                     Date source = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").parse(fbdata.data.get(fb_id).get(i).get("time"));
@@ -307,20 +306,12 @@ public class MyService extends Service {
 
         Profile profile;
 
+        task(Profile profile) {
+            this.profile = profile;
+        }
+
         @Override
         protected Object doInBackground(Object[] objects) {
-
-            if (Profile.getCurrentProfile() == null) {
-                mProfileTracker = new ProfileTracker() {
-                    @Override
-                    protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
-                        profile = currentProfile;
-                        mProfileTracker.stopTracking();
-                    }
-                };
-            } else {
-                profile = Profile.getCurrentProfile();
-            }
 
             try {
                 URL url = new URL((profile.getProfilePictureUri(200, 200)).toString());
@@ -334,6 +325,8 @@ public class MyService extends Service {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+
             return null;
         }
 
